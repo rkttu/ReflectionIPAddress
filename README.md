@@ -2,7 +2,7 @@
 
 [![NuGet Version](https://img.shields.io/nuget/v/ReflectIPAddress)](https://www.nuget.org/packages/ReflectIPAddress/) ![Build Status](https://github.com/rkttu/ReflectIPAddress/actions/workflows/dotnet.yml/badge.svg) [![GitHub Sponsors](https://img.shields.io/github/sponsors/rkttu)](https://github.com/sponsors/rkttu/)
 
-This is a library that checks the external IP address of a running PC, acquires a wildcard domain, and searches IP band information.## Minimum Requirements
+This is a library that checks the external IP address of a running PC, acquires a wildcard domain, and searches IP band information.
 
 This library implements the simultaneous queries of several free services (e.g. ipify.org, ip6.me, etc.) that provide a service that allows you to look up the other party's external IP address in a similar way without separate authentication, thereby ensuring service stability guaranteed.
 
