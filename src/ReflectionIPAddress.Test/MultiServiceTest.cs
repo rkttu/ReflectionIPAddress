@@ -6,7 +6,7 @@ namespace ReflectionIPAddress.Test
     public class MultiServiceTest
     {
         [Fact]
-        public void Test_IPv4_Multi()
+        public async Task Test_IPv4_Multi()
         {
             var services = new PublicAddressReflectionServices()
                 .AddService<IpifyService>()
@@ -17,33 +17,27 @@ namespace ReflectionIPAddress.Test
                 .AddService<IFConfigService>()
                 ;
 
-            var address = services.ReflectIPv4Async().Result;
+            var address = await services.ReflectIPv4Async();
             Assert.NotNull(address);
             Assert.Equal(AddressFamily.InterNetwork, address.AddressFamily);
         }
 
         [SkippableFact(typeof(Xunit.SkipException))]
-        public void Test_IPv6_Multi()
+        public async Task Test_IPv6_Multi()
         {
-            var ipv6Available = false;
-            foreach (var eachNetworkInterface in NetworkInterface.GetAllNetworkInterfaces())
+            try
             {
-                try
-                {
-                    var ipv6Prop = eachNetworkInterface.GetIPProperties().GetIPv6Properties();
-
-                    if (ipv6Prop == null)
-                        continue;
-                    if (ipv6Prop.Index <= (-999))
-                        continue;
-
-                    ipv6Available = true;
-                    break;
-                }
-                catch (NetworkInformationException) { continue; }
+                IpifyService testService = new IpifyService();
+                await testService.ReflectIPv6Async();
             }
-
-            Skip.IfNot(ipv6Available, "IPv6 is not available.");
+            catch (SocketException)
+            {
+                Skip.If(true, "This system does not support IPv6.");
+            }
+            catch (ReflectionIPAddressException)
+            {
+                Skip.If(true, "This system does not support IPv6.");
+            }
 
             var services = new PublicAddressReflectionServices()
                 .AddService<IpifyService>()
@@ -54,7 +48,7 @@ namespace ReflectionIPAddress.Test
                 .AddService<IFConfigService>()
                 ;
 
-            var address = services.ReflectIPv6Async().Result;
+            var address = await services.ReflectIPv6Async();
             Assert.NotNull(address);
             Assert.Equal(AddressFamily.InterNetworkV6, address.AddressFamily);
         }

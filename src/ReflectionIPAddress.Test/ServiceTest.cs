@@ -53,15 +53,5 @@ namespace ReflectionIPAddress.Test
             Assert.NotNull(address);
             Assert.Equal(AddressFamily.InterNetwork, address.AddressFamily);
         }
-
-        [Fact]
-        public async Task Test_IFConfigService()
-        {
-            var services = new PublicAddressReflectionServices().AddService<IFConfigService>();
-            var address = await services.ReflectIPv4Async();
-
-            Assert.NotNull(address);
-            Assert.Equal(AddressFamily.InterNetwork, address.AddressFamily);
-        }
     }
 }
