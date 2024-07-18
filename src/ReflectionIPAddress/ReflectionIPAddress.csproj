@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<OutputType>Library</OutputType>
+		<AssemblyName>ReflectionIPAddress</AssemblyName>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<RootNamespace>ReflectionIPAddress</RootNamespace>
+		<Title>ReflectionIPAddress</Title>
+		<Version>0.5.0</Version>
+		<Authors>Jung Hyun, Nam</Authors>
+		<Company>rkttu.com</Company>
+		<Product>ReflectionIPAddress</Product>
+		<Description>This is a library that checks the external IP address of a running PC, acquires a wildcard domain, and searches IP band information.</Description>
+		<Copyright>(c) 2024 Jung Hyun, Nam, All rights reserved.</Copyright>
+		<PackageProjectUrl>https://github.com/rkttu/ReflectionIPAddress</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/rkttu/ReflectionIPAddress</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>ip;ip address;reflection;sslip;wildcard;range;region</PackageTags>
+		<PackageReleaseNotes>https://github.com/rkttu/ReflectionIPAddress/releases</PackageReleaseNotes>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<IncludeSymbols>True</IncludeSymbols>
+		<SymbolPackageFormat>symbols.nupkg</SymbolPackageFormat>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="System.Text.Json" Version="8.0.4" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\..\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+			<_Parameter1>$(AssemblyName).Test</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
+</Project>
