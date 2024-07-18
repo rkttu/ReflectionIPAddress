@@ -1,6 +1,6 @@
-# ReflectIPAddress
+# ReflectionIPAddress
 
-[![NuGet Version](https://img.shields.io/nuget/v/ReflectIPAddress)](https://www.nuget.org/packages/ReflectIPAddress/) ![Build Status](https://github.com/rkttu/ReflectIPAddress/actions/workflows/dotnet.yml/badge.svg) [![GitHub Sponsors](https://img.shields.io/github/sponsors/rkttu)](https://github.com/sponsors/rkttu/)
+[![NuGet Version](https://img.shields.io/nuget/v/ReflectionIPAddress)](https://www.nuget.org/packages/ReflectionIPAddress/) ![Build Status](https://github.com/rkttu/ReflectionIPAddress/actions/workflows/dotnet.yml/badge.svg) [![GitHub Sponsors](https://img.shields.io/github/sponsors/rkttu)](https://github.com/sponsors/rkttu/)
 
 This is a library that checks the external IP address of a running PC, acquires a wildcard domain, and searches IP band information.
 
@@ -16,7 +16,7 @@ Also, this library explicitly uses direct TCP socket connections and SSL connect
 ## How to use
 
 ```csharp
-using ReflectIPAddress;
+using ReflectionIPAddress;
 
 ...
 
