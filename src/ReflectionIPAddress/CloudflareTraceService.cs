@@ -1,21 +1,21 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ReflectionIPAddress
 {
     /// <summary>
-    /// Represents a service that retrieves the public IP address of the client using the "ip6.me" service.
+    /// Represents a service that retrieves the public IP address of the client using the "cloudflare.com" trace service.
     /// </summary>
-    public sealed class IP6MeService : IPublicAddressReflectionService
+    public sealed class CloudflareTraceService : IPublicAddressReflectionService
     {
         /// <summary>
         /// Gets the URI of the service.
         /// </summary>
-        public Uri ServiceUri => new Uri("https://ip6.me/api/", UriKind.Absolute);
+        public Uri ServiceUri => new Uri("https://www.cloudflare.com/cdn-cgi/trace", UriKind.Absolute);
 
         /// <summary>
         /// Gets the communication method used by the service.
@@ -43,15 +43,12 @@ namespace ReflectionIPAddress
                 if (string.IsNullOrWhiteSpace(str))
                     return default;
 
-                var parts = str.Split(Constants.CommaSeparators.Value, StringSplitOptions.RemoveEmptyEntries);
+                var match = Regex.Match(str, @"(?<Name>ip)=(?<Value>.+)", RegexOptions.Multiline | RegexOptions.Compiled);
 
-                if (parts.Length < 2)
+                if (!match.Success || !IPAddress.TryParse(match.Groups["Value"].Value.Trim(), out IPAddress addr))
                     return default;
 
-                if (!IPAddress.TryParse(parts.ElementAtOrDefault(1), out IPAddress ipAddress))
-                    return default;
-
-                return ipAddress;
+                return addr;
             }
         }
     }

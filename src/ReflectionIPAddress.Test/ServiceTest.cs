@@ -5,6 +5,16 @@ namespace ReflectionIPAddress.Test
     public class ServiceTest
     {
         [Fact]
+        public async Task Test_CloudflareTraceService()
+        {
+            var services = new PublicAddressReflectionServices().AddService<CloudflareTraceService>();
+            var address = await services.ReflectIPv4Async();
+
+            Assert.NotNull(address);
+            Assert.Equal(AddressFamily.InterNetwork, address.AddressFamily);
+        }
+
+        [Fact]
         public async Task Test_IpifyService()
         {
             var services = new PublicAddressReflectionServices().AddService<IpifyService>();

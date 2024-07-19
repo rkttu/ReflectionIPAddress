@@ -10,7 +10,14 @@ Also, this library explicitly uses direct TCP socket connections and SSL connect
 
 ## Update
 
+### v0.6.1
+
+- Added a new service, CloudflareTraceService, to support Cloudflare Trace protocol to get the public IP address.
+
+### v0.6.0
+
 - Starting with v0.6, the library supports STUN protocol to get the public IP address.
+- Added a new service, GoogleStunService, to support STUN protocol to get the public IP address.
 
 ## Requirements
 
@@ -25,6 +32,7 @@ using ReflectionIPAddress;
 ...
 
 var services = new PublicAddressReflectionServices()
+	.AddService<CloudflareTraceService>()
 	.AddService<IpifyService>()
 	.AddService<SeeIPService>()
 	.AddService<IP6MeService>()
