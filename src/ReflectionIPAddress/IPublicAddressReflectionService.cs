@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,15 +6,10 @@ using System.Threading.Tasks;
 namespace ReflectionIPAddress
 {
     /// <summary>
-    /// Represents a service that retrieves the public IP address of the client.
+    /// Represents a service that retrieves the public IP address of the client using HTTP/HTTPS Protocol.
     /// </summary>
-    public interface IPublicAddressReflectionService
+    public interface IPublicAddressReflectionService : IAddressReflectionService
     {
-        /// <summary>
-        /// Gets the URI of the service.
-        /// </summary>
-        Uri ServiceUri { get; }
-
         /// <summary>
         /// Parses the response from the service and returns the IP address.
         /// </summary>

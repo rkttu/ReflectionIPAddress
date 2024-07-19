@@ -8,6 +8,10 @@ This library implements the simultaneous queries of several free services (e.g. 
 
 Also, this library explicitly uses direct TCP socket connections and SSL connections to use IPv4 or IPv6 communication.
 
+## Update
+
+- Starting with v0.6, the library supports STUN protocol to get the public IP address.
+
 ## Requirements
 
 - Requires a platform with .NET Standard 2.0 or later
@@ -26,7 +30,8 @@ var services = new PublicAddressReflectionServices()
 	.AddService<IP6MeService>()
 	.AddService<CurlMyIPService>()
 	.AddService<ICanHazIPService>()
-	.AddService<IFConfigService>();
+	.AddService<IFConfigService>()
+	.AddService<GoogleStunService>();
 
 // Returns the IP address by checking for the fastest successful response among the specified services.
 var ipv4Address = await services.ReflectIPv4Async();

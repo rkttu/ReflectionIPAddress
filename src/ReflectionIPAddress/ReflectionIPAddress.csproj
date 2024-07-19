@@ -8,7 +8,7 @@
 	<PropertyGroup>
 		<RootNamespace>ReflectionIPAddress</RootNamespace>
 		<Title>ReflectionIPAddress</Title>
-		<Version>0.5.1</Version>
+		<Version>0.6.0</Version>
 		<Authors>Jung Hyun, Nam</Authors>
 		<Company>rkttu.com</Company>
 		<Product>ReflectionIPAddress</Product>
@@ -17,7 +17,7 @@
 		<PackageProjectUrl>https://github.com/rkttu/ReflectionIPAddress</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/rkttu/ReflectionIPAddress</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageTags>ip;ip address;reflection;sslip;wildcard;range;region</PackageTags>
+		<PackageTags>ip;ip address;reflection;sslip;wildcard;range;region;udp;stun</PackageTags>
 		<PackageReleaseNotes>https://github.com/rkttu/ReflectionIPAddress/releases</PackageReleaseNotes>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 		<IncludeSymbols>True</IncludeSymbols>

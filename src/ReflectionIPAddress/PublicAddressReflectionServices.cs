@@ -6,7 +6,7 @@ namespace ReflectionIPAddress
     /// <summary>
     /// Represents a collection of public address reflection services.
     /// </summary>
-    public sealed class PublicAddressReflectionServices : KeyedCollection<Uri, IPublicAddressReflectionService>
+    public sealed class PublicAddressReflectionServices : KeyedCollection<Uri, IAddressReflectionService>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="PublicAddressReflectionServices"/> class.
@@ -17,6 +17,6 @@ namespace ReflectionIPAddress
         /// <returns>
         /// The key for the specified item.
         /// </returns>
-        protected override Uri GetKeyForItem(IPublicAddressReflectionService item) => item.ServiceUri;
+        protected override Uri GetKeyForItem(IAddressReflectionService item) => item.ServiceUri;
     }
 }

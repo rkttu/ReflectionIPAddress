@@ -15,6 +15,7 @@ namespace ReflectionIPAddress.Test
                 .AddService<CurlMyIPService>()
                 .AddService<ICanHazIPService>()
                 .AddService<IFConfigService>()
+                .AddService<GoogleStunService>()
                 ;
 
             var address = await services.ReflectIPv4Async();
@@ -46,6 +47,7 @@ namespace ReflectionIPAddress.Test
                 .AddService<CurlMyIPService>()
                 .AddService<ICanHazIPService>()
                 .AddService<IFConfigService>()
+                .AddService<GoogleStunService>()
                 ;
 
             var address = await services.ReflectIPv6Async();

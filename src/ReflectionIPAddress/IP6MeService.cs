@@ -19,6 +19,11 @@ namespace ReflectionIPAddress
         public Uri ServiceUri => new Uri("https://ip6.me/api/", UriKind.Absolute);
 
         /// <summary>
+        /// Gets the communication method used by the service.
+        /// </summary>
+        public CommunicationMethods CommunicationMethod => CommunicationMethods.TcpHttps;
+
+        /// <summary>
         /// Parses the response from the service and returns the IP address.
         /// </summary>
         /// <param name="stream">

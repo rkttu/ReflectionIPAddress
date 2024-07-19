@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Threading;
 
 namespace ReflectionIPAddress
 {
@@ -13,10 +14,23 @@ namespace ReflectionIPAddress
         /// </summary>
         public const int DefaultBufferSize = 1024;
 
+        /// <summary>
+        /// The default timeout for sending a request to the service.
+        /// </summary>
+        public const int UdpDefaultSendTimeoutMilliseconds = 5000;
+
+        /// <summary>
+        /// The default timeout for receiving a response from the service.
+        /// </summary>
+        public const int UdpDefaultReceiveTimeoutMilliseconds = 5000;
+
         internal static readonly Lazy<Encoding> UTF8NoBOMEncoding = new Lazy<Encoding>(
-            () => new UTF8Encoding(false), false);
+            () => new UTF8Encoding(false), LazyThreadSafetyMode.None);
 
         internal static readonly Lazy<char[]> CommaSeparators = new Lazy<char[]>(
-            () => new char[] { ',', }, false);
+            () => new char[] { ',', }, LazyThreadSafetyMode.None);
+
+        internal static readonly Lazy<Random> SharedRandom = new Lazy<Random>(
+            () => new Random(), LazyThreadSafetyMode.None);
     }
 }

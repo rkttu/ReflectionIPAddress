@@ -30,7 +30,7 @@ namespace ReflectionIPAddress
         /// The collection of services with the added service.
         /// </returns>
         public static PublicAddressReflectionServices AddService<TService>(this PublicAddressReflectionServices services)
-            where TService : IPublicAddressReflectionService, new()
+            where TService : IAddressReflectionService, new()
         {
             services.Add(new TService());
             return services;
@@ -42,9 +42,6 @@ namespace ReflectionIPAddress
         /// <param name="services">
         /// The services to use for reflection.
         /// </param>
-        /// <param name="bufferSize">
-        /// The size of the buffer to use for reading the response stream.
-        /// </param>
         /// <param name="cancellationToken">
         /// The token to monitor for cancellation requests.
         /// </param>
@@ -52,18 +49,15 @@ namespace ReflectionIPAddress
         /// The public IPv4 address of this computer.
         /// </returns>
         public static Task<IPAddress> ReflectIPv4Async(
-            this IEnumerable<IPublicAddressReflectionService> services,
-            int bufferSize = Constants.DefaultBufferSize, CancellationToken cancellationToken = default)
-            => services.ReflectAsync(AddressFamily.InterNetwork, bufferSize, cancellationToken);
+            this IEnumerable<IAddressReflectionService> services,
+            CancellationToken cancellationToken = default)
+            => services.ReflectAsync(AddressFamily.InterNetwork, cancellationToken);
 
         /// <summary>
         /// Reflects the public IPv6 address using the specified services.
         /// </summary>
         /// <param name="services">
         /// The services to use for reflection.
-        /// </param>
-        /// <param name="bufferSize">
-        /// The size of the buffer to use for reading the response stream.
         /// </param>
         /// <param name="cancellationToken">
         /// The token to monitor for cancellation requests.
@@ -72,9 +66,9 @@ namespace ReflectionIPAddress
         /// The public IPv6 address of this computer.
         /// </returns>
         public static Task<IPAddress> ReflectIPv6Async(
-            this IEnumerable<IPublicAddressReflectionService> services,
-            int bufferSize = Constants.DefaultBufferSize, CancellationToken cancellationToken = default)
-            => services.ReflectAsync(AddressFamily.InterNetworkV6, bufferSize, cancellationToken);
+            this IEnumerable<IAddressReflectionService> services,
+            CancellationToken cancellationToken = default)
+            => services.ReflectAsync(AddressFamily.InterNetworkV6, cancellationToken);
 
         /// <summary>
         /// Reflects the public IP address using the specified services.
@@ -84,9 +78,6 @@ namespace ReflectionIPAddress
         /// </param>
         /// <param name="addressFamily">
         /// The address family to reflect.
-        /// </param>
-        /// <param name="bufferSize">
-        /// The size of the buffer to use for reading the response stream.
         /// </param>
         /// <param name="cancellationToken">
         /// The token to monitor for cancellation requests.
@@ -98,8 +89,8 @@ namespace ReflectionIPAddress
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="ReflectionIPAddressException"></exception>
         public static async Task<IPAddress> ReflectAsync(
-            this IEnumerable<IPublicAddressReflectionService> services,
-            AddressFamily addressFamily, int bufferSize = Constants.DefaultBufferSize,
+            this IEnumerable<IAddressReflectionService> services,
+            AddressFamily addressFamily,
             CancellationToken cancellationToken = default)
         {
             if (services == null)
@@ -109,7 +100,7 @@ namespace ReflectionIPAddress
             if (addressFamily != AddressFamily.InterNetwork &&
                 addressFamily != AddressFamily.InterNetworkV6)
                 throw new ArgumentException($"Selected address family is not supported - {addressFamily}", nameof(addressFamily));
-            var taskList = services.Select(x => x.ReflectAsync(addressFamily, bufferSize, cancellationToken)).ToList();
+            var taskList = services.Select(x => x.ReflectAsync(addressFamily, cancellationToken)).ToList();
 
             while (taskList.Any())
             {
@@ -129,9 +120,6 @@ namespace ReflectionIPAddress
         /// <param name="service">
         /// The service to use for reflection.
         /// </param>
-        /// <param name="bufferSize">
-        /// The size of the buffer to use for reading the response stream.
-        /// </param>
         /// <param name="cancellationToken">
         /// The token to monitor for cancellation requests.
         /// </param>
@@ -139,18 +127,15 @@ namespace ReflectionIPAddress
         /// The public IPv4 address of this computer.
         /// </returns>
         public static Task<IPAddress> ReflectIPv4Async(
-            this IPublicAddressReflectionService service,
-            int bufferSize = Constants.DefaultBufferSize, CancellationToken cancellationToken = default)
-            => service.ReflectAsync(AddressFamily.InterNetwork, bufferSize, cancellationToken);
+            this IAddressReflectionService service,
+            CancellationToken cancellationToken = default)
+            => service.ReflectAsync(AddressFamily.InterNetwork, cancellationToken);
 
         /// <summary>
         /// Reflects the public IPv6 address using the specified service.
         /// </summary>
         /// <param name="service">
         /// The service to use for reflection.
-        /// </param>
-        /// <param name="bufferSize">
-        /// The size of the buffer to use for reading the response stream.
         /// </param>
         /// <param name="cancellationToken">
         /// The token to monitor for cancellation requests.
@@ -159,12 +144,67 @@ namespace ReflectionIPAddress
         /// The public IPv6 address of this computer.
         /// </returns>
         public static Task<IPAddress> ReflectIPv6Async(
-            this IPublicAddressReflectionService service,
-            int bufferSize = Constants.DefaultBufferSize, CancellationToken cancellationToken = default)
-            => service.ReflectAsync(AddressFamily.InterNetworkV6, bufferSize, cancellationToken);
+            this IAddressReflectionService service,
+            CancellationToken cancellationToken = default)
+            => service.ReflectAsync(AddressFamily.InterNetworkV6, cancellationToken);
 
         /// <summary>
         /// Reflects the public IP address using the specified service.
+        /// </summary>
+        /// <param name="service">
+        /// The service to use for reflection.
+        /// </param>
+        /// <param name="addressFamily">
+        /// The address family to reflect.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The token to monitor for cancellation requests.
+        /// </param>
+        /// <returns>
+        /// The public IP address of this computer.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// Thrown when the selected address family is not supported.
+        /// </exception>
+        public static async Task<IPAddress> ReflectAsync(
+            this IAddressReflectionService service,
+            AddressFamily addressFamily,
+            CancellationToken cancellationToken = default)
+        {
+            if (addressFamily != AddressFamily.InterNetwork &&
+                addressFamily != AddressFamily.InterNetworkV6)
+                throw new ArgumentException($"Selected address family is not supported - {addressFamily}", nameof(addressFamily));
+
+            if (service is IPublicAddressReflectionService)
+            {
+                var publicService = (IPublicAddressReflectionService)service;
+
+                using (var responseStream = await publicService.CommunicateAsync(addressFamily, default, cancellationToken).ConfigureAwait(false))
+                {
+                    if (object.ReferenceEquals(Stream.Null, responseStream))
+                        return null;
+
+                    var addr = await publicService.ParseResponse(responseStream, cancellationToken).ConfigureAwait(false);
+
+                    if (addr == default)
+                        return null;
+
+                    return addr;
+                }
+            }
+            else if (service is IStunAddressReflectionService)
+            {
+                var stunService = (IStunAddressReflectionService)service;
+                var response = await stunService.CommunicateAsync(addressFamily, default, default, cancellationToken).ConfigureAwait(false);
+                var result = ParseStunResponse(response);
+                return result.Address;
+            }
+            else
+                throw new ArgumentException($"Unsupported service type '{service?.GetType()}' found.", nameof(service));
+        }
+
+        /// <summary>
+        /// Communicates with the public address reflection service.
         /// </summary>
         /// <param name="service">
         /// The service to use for reflection.
@@ -179,63 +219,21 @@ namespace ReflectionIPAddress
         /// The token to monitor for cancellation requests.
         /// </param>
         /// <returns>
-        /// The public IP address of this computer.
-        /// </returns>
-        /// <exception cref="ArgumentException">
-        /// Thrown when the selected address family is not supported.
-        /// </exception>
-        public static async Task<IPAddress> ReflectAsync(
-            this IPublicAddressReflectionService service,
-            AddressFamily addressFamily, int bufferSize = Constants.DefaultBufferSize,
-            CancellationToken cancellationToken = default)
-        {
-            if (addressFamily != AddressFamily.InterNetwork &&
-                addressFamily != AddressFamily.InterNetworkV6)
-                throw new ArgumentException($"Selected address family is not supported - {addressFamily}", nameof(addressFamily));
-
-            using (var responseStream = await service.CommunicateWithSpecificAddressFamilyAsync(addressFamily, bufferSize, cancellationToken).ConfigureAwait(false))
-            {
-                if (object.ReferenceEquals(Stream.Null, responseStream))
-                    return null;
-
-                var addr = await service.ParseResponse(responseStream, cancellationToken).ConfigureAwait(false);
-
-                if (addr == default)
-                    return null;
-
-                return addr;
-            }
-        }
-
-        /// <summary>
-        /// Communicates with the service using the specified address family.
-        /// </summary>
-        /// <param name="service">
-        /// The service to communicate with.
-        /// </param>
-        /// <param name="addressFamily">
-        /// The address family to use for communication.
-        /// </param>
-        /// <param name="bufferSize">
-        /// The size of the buffer to use for reading the response stream.
-        /// </param>
-        /// <param name="cancellationToken">
-        /// The token to monitor for cancellation requests.
-        /// </param>
-        /// <returns>
-        /// The stream containing the response from the service.
+        /// The response stream from the service.
         /// </returns>
         /// <exception cref="ArgumentNullException">
         /// Thrown when the service is null.
         /// </exception>
         /// <exception cref="ArgumentException">
-        /// Thrown when the URI scheme is not supported, or the URI has no host.
+        /// Thrown when the buffer size is less than the default value.
         /// </exception>
         /// <exception cref="ReflectionIPAddressException">
-        /// Thrown when no address is found for the specified address family.
+        /// Thrown when no address is found for the host.
         /// </exception>
-        private static async Task<Stream> CommunicateWithSpecificAddressFamilyAsync(
-            this IPublicAddressReflectionService service, AddressFamily addressFamily, int bufferSize, CancellationToken cancellationToken)
+        public static async Task<Stream> CommunicateAsync(
+            this IPublicAddressReflectionService service, AddressFamily addressFamily,
+            int bufferSize = Constants.DefaultBufferSize,
+            CancellationToken cancellationToken = default)
         {
             if (service == null)
                 throw new ArgumentNullException(nameof(service));
@@ -243,7 +241,7 @@ namespace ReflectionIPAddress
                 bufferSize = Constants.DefaultBufferSize;
             var targetUri = service.ServiceUri;
             if (targetUri == null)
-                throw new ArgumentNullException(nameof(IPublicAddressReflectionService.ServiceUri));
+                throw new ArgumentNullException(nameof(IAddressReflectionService.ServiceUri));
             if (!string.Equals(Uri.UriSchemeHttps, targetUri.Scheme, StringComparison.Ordinal) &&
                 !string.Equals(Uri.UriSchemeHttp, targetUri.Scheme, StringComparison.Ordinal))
                 throw new ArgumentException($"Selected URI has incompatible scheme - {targetUri.Scheme}", nameof(targetUri));
@@ -315,6 +313,162 @@ namespace ReflectionIPAddress
             X509Chain chain,
             SslPolicyErrors sslPolicyErrors)
             => sslPolicyErrors == SslPolicyErrors.None;
+
+        /// <summary>
+        /// Communicates with the STUN service to retrieve the public IP address.
+        /// </summary>
+        /// <param name="service">
+        /// The service to use for reflection.
+        /// </param>
+        /// <param name="addressFamily">
+        /// The address family to reflect.
+        /// </param>
+        /// <param name="sendTimeoutMilliseconds">
+        /// The timeout for sending a request to the service.
+        /// </param>
+        /// <param name="receiveTimeoutMilliseconds">
+        /// The timeout for receiving a response from the service.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The token to monitor for cancellation requests.
+        /// </param>
+        /// <returns>
+        /// The response from the STUN service.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown when the service is null.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// Thrown when the send timeout is less than the default value.
+        /// </exception>
+        /// <exception cref="ReflectionIPAddressException">
+        /// Thrown when no address is found for the host.
+        /// </exception>
+        /// <exception cref="InvalidDataException">
+        /// Thrown when the data is invalid.
+        /// </exception>
+        public static async Task<byte[]> CommunicateAsync(
+            this IStunAddressReflectionService service, AddressFamily addressFamily,
+            int sendTimeoutMilliseconds = Constants.UdpDefaultSendTimeoutMilliseconds,
+            int receiveTimeoutMilliseconds = Constants.UdpDefaultReceiveTimeoutMilliseconds,
+            CancellationToken cancellationToken = default)
+        {
+            // This code is quoted from https://forum.dotnetdev.kr/t/ip/11245/5.
+            // Thanks to tkm (https://forum.dotnetdev.kr/u/tkm/)
+            if (service == null)
+                throw new ArgumentNullException(nameof(service));
+            if (sendTimeoutMilliseconds < Constants.UdpDefaultSendTimeoutMilliseconds)
+                sendTimeoutMilliseconds = Constants.UdpDefaultSendTimeoutMilliseconds;
+            if (receiveTimeoutMilliseconds < Constants.UdpDefaultReceiveTimeoutMilliseconds)
+                receiveTimeoutMilliseconds = Constants.UdpDefaultReceiveTimeoutMilliseconds;
+
+            const short stunTypeRequest = 0x0001;
+            const short stunTypeResponse = 0x0101;
+            const int stunMagicConstant = 0x2112A442;
+
+            var targetUri = service.ServiceUri;
+            if (targetUri == null)
+                throw new ArgumentNullException(nameof(IAddressReflectionService.ServiceUri));
+            if (!string.Equals("stun", targetUri.Scheme, StringComparison.Ordinal))
+                throw new ArgumentException($"Selected URI has incompatible scheme - {targetUri.Scheme}", nameof(targetUri));
+
+            var host = targetUri.Host;
+            var port = targetUri.Port;
+
+            var ipHost = await Dns.GetHostEntryAsync(targetUri.Host).ConfigureAwait(false);
+            var ipAddr = default(IPAddress);
+
+            foreach (var address in ipHost.AddressList)
+            {
+                if (address.AddressFamily == addressFamily)
+                {
+                    ipAddr = address;
+                    break;
+                }
+            }
+
+            if (ipAddr == null)
+                throw new ReflectionIPAddressException($"No {addressFamily} address found for {host}");
+
+            var ipEndPoint = new IPEndPoint(ipAddr, port);
+
+            using (var client = new UdpClient(addressFamily))
+            {
+                client.Connect(ipEndPoint);
+
+                var req = new byte[20];
+                var messageType = (short)ReverseEndianness((ushort)stunTypeRequest);
+                var messageParam = stunMagicConstant;
+
+                Buffer.BlockCopy(BitConverter.GetBytes(messageType), 0, req, 0, 2);
+                Buffer.BlockCopy(BitConverter.GetBytes(messageParam), 0, req, 4, 4);
+
+                var randomBytes = new byte[12];
+                Constants.SharedRandom.Value.NextBytes(randomBytes);
+                Array.Copy(randomBytes, 0, req, 8, 12);
+
+                var sendTask = client.SendAsync(req, req.Length);
+                if (await Task.WhenAny(sendTask, Task.Delay(sendTimeoutMilliseconds)).ConfigureAwait(false) != sendTask)
+                    throw new TimeoutException("The operation has timed out.");
+
+                var receiveTask = client.ReceiveAsync();
+                if (await Task.WhenAny(receiveTask, Task.Delay(receiveTimeoutMilliseconds)).ConfigureAwait(false) != receiveTask)
+                    throw new TimeoutException("The operation has timed out.");
+
+                var res = await receiveTask.ConfigureAwait(false);
+                if ((short)ReverseEndianness((ushort)BitConverter.ToInt16(res.Buffer, 0)) != stunTypeResponse)
+                    throw new InvalidDataException();
+                if (BitConverter.ToInt32(res.Buffer, 4) != stunMagicConstant)
+                    throw new InvalidDataException();
+                return res.Buffer.Skip(20).ToArray();
+            }
+        }
+
+        internal static IPEndPoint ParseStunResponse(byte[] buffer)
+        {
+            var offset = 0;
+            while (offset < buffer.Length)
+            {
+                if (ReadUInt16(buffer, ref offset) == 0x0001u)
+                {
+                    ReadUInt16(buffer, ref offset); // size
+                    var parsedAddrFamily = ReadUInt16(buffer, ref offset);
+                    var port = ReadUInt16(buffer, ref offset);
+                    switch (parsedAddrFamily)
+                    {
+                        case 0x01:
+                            var ipv4Address = new byte[4];
+                            Array.Copy(buffer, offset, ipv4Address, 0, 4);
+                            offset += 4;
+                            return new IPEndPoint(new IPAddress(ipv4Address), port);
+                        case 0x02:
+                            var ipv6Address = new byte[16];
+                            Array.Copy(buffer, offset, ipv6Address, 0, 16);
+                            offset += 16;
+                            return new IPEndPoint(new IPAddress(ipv6Address), port);
+                        default:
+                            throw new NotSupportedException();
+                    }
+                }
+
+                var size = ReadUInt16(buffer, ref offset);
+                offset += size;
+            }
+
+            throw new InvalidDataException();
+        }
+
+        private static ushort ReadUInt16(byte[] buffer, ref int offset)
+        {
+            ushort result = (ushort)((buffer[offset] << 8) | buffer[offset + 1]);
+            offset += 2;
+            return result;
+        }
+
+        private static ushort ReverseEndianness(ushort value)
+        {
+            return (ushort)((value >> 8) + (value << 8));
+        }
 
         /// <summary>
         /// Converts the IP address to a domain name using the "sslip.io" provider.
