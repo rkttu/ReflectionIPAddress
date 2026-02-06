@@ -250,61 +250,83 @@ namespace ReflectionIPAddress
             var port = targetUri.Port;
             var pathAndQuery = targetUri.PathAndQuery;
 
-            var socket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp);
-            var ipHost = await Dns.GetHostEntryAsync(targetUri.Host).ConfigureAwait(false);
-            var ipAddr = default(IPAddress);
+            Socket socket = null;
+            NetworkStream networkStream = null;
+            SslStream sslStream = null;
+            var success = false;
 
-            foreach (var address in ipHost.AddressList)
+            try
             {
-                if (address.AddressFamily == addressFamily)
+                socket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp);
+                var ipHost = await Dns.GetHostEntryAsync(targetUri.Host).ConfigureAwait(false);
+                var ipAddr = default(IPAddress);
+
+                foreach (var address in ipHost.AddressList)
                 {
-                    ipAddr = address;
-                    break;
+                    if (address.AddressFamily == addressFamily)
+                    {
+                        ipAddr = address;
+                        break;
+                    }
+                }
+
+                if (ipAddr == null)
+                    throw new ReflectionIPAddressException($"No {addressFamily} address found for {host}");
+
+                IPEndPoint endPoint = new IPEndPoint(ipAddr, port);
+                await Task.Factory.FromAsync(socket.BeginConnect, socket.EndConnect, endPoint, null).ConfigureAwait(false);
+
+                networkStream = new NetworkStream(socket, ownsSocket: true);
+                sslStream = new SslStream(networkStream, false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
+                await Task.Factory.FromAsync<string>(sslStream.BeginAuthenticateAsClient, sslStream.EndAuthenticateAsClient, host, null).ConfigureAwait(false);
+
+                using (var writer = new StreamWriter(sslStream, Encoding.ASCII, bufferSize, true) { AutoFlush = true })
+                {
+                    string request = $"GET {pathAndQuery} HTTP/1.1\r\n" +
+                                     $"Host: {host}\r\n" +
+                                     $"User-Agent: IPReflection/1.0\r\n" +
+                                     $"Accept: application/json\r\n" +
+                                     $"Connection: close\r\n" +
+                                     $"\r\n";
+                    await writer.WriteAsync(request).ConfigureAwait(false);
+                }
+
+                var buffer = new byte[4];
+                var index = 0;
+
+                while (true)
+                {
+                    int b = sslStream.ReadByte();
+                    if (b < 0)
+                        break;
+
+                    buffer[index] = (byte)b;
+                    index = (index + 1) % 4;
+
+                    // \r\n\r\n
+                    if (buffer[index] == 13 &&
+                        buffer[(index + 1) % 4] == 10 &&
+                        buffer[(index + 2) % 4] == 13 &&
+                        buffer[(index + 3) % 4] == 10)
+                    {
+                        success = true;
+                        return sslStream;
+                    }
+                }
+
+                return Stream.Null;
+            }
+            finally
+            {
+                if (!success)
+                {
+                    sslStream?.Dispose();
+                    // NetworkStream with ownsSocket:true will dispose the socket,
+                    // but if networkStream was never created, dispose socket directly.
+                    if (networkStream == null)
+                        socket?.Dispose();
                 }
             }
-
-            if (ipAddr == null)
-                throw new ReflectionIPAddressException($"No {addressFamily} address found for {host}");
-
-            IPEndPoint endPoint = new IPEndPoint(ipAddr, port);
-            await Task.Factory.FromAsync(socket.BeginConnect, socket.EndConnect, endPoint, null).ConfigureAwait(false);
-
-            NetworkStream networkStream = new NetworkStream(socket);
-            SslStream sslStream = new SslStream(networkStream, false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
-            await Task.Factory.FromAsync<string>(sslStream.BeginAuthenticateAsClient, sslStream.EndAuthenticateAsClient, host, null).ConfigureAwait(false);
-
-            using (var writer = new StreamWriter(sslStream, Encoding.ASCII, bufferSize, true) { AutoFlush = true })
-            {
-                string request = $"GET {pathAndQuery} HTTP/1.1\r\n" +
-                                 $"Host: {host}\r\n" +
-                                 $"User-Agent: IPReflection/1.0\r\n" +
-                                 $"Accept: application/json\r\n" +
-                                 $"Connection: close\r\n" +
-                                 $"\r\n";
-                await writer.WriteAsync(request).ConfigureAwait(false);
-            }
-
-            var buffer = new byte[4];
-            var index = 0;
-
-            while (true)
-            {
-                int b = sslStream.ReadByte();
-                if (b < 0)
-                    break;
-
-                buffer[index] = (byte)b;
-                index = (index + 1) % 4;
-
-                // \r\n\r\n
-                if (buffer[index] == 13 &&
-                    buffer[(index + 1) % 4] == 10 &&
-                    buffer[(index + 2) % 4] == 13 &&
-                    buffer[(index + 3) % 4] == 10)
-                    return sslStream;
-            }
-
-            return Stream.Null;
         }
 
         private static bool ValidateServerCertificate(

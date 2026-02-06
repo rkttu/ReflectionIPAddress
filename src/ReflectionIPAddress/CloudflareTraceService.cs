@@ -12,6 +12,10 @@ namespace ReflectionIPAddress
     /// </summary>
     public sealed class CloudflareTraceService : IPublicAddressReflectionService
     {
+        private static readonly Regex IpLineRegex = new Regex(
+            @"(?<Name>ip)=(?<Value>.+)",
+            RegexOptions.Multiline | RegexOptions.Compiled);
+
         /// <summary>
         /// Gets the URI of the service.
         /// </summary>
@@ -43,7 +47,7 @@ namespace ReflectionIPAddress
                 if (string.IsNullOrWhiteSpace(str))
                     return default;
 
-                var match = Regex.Match(str, @"(?<Name>ip)=(?<Value>.+)", RegexOptions.Multiline | RegexOptions.Compiled);
+                var match = IpLineRegex.Match(str);
 
                 if (!match.Success || !IPAddress.TryParse(match.Groups["Value"].Value.Trim(), out IPAddress addr))
                     return default;
