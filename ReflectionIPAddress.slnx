@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".github/workflows/dotnet.yml" />
+  </Folder>
+  <Project Path="src/ReflectionIPAddress.Test/ReflectionIPAddress.Test.csproj" />
+  <Project Path="src/ReflectionIPAddress/ReflectionIPAddress.csproj" />
+</Solution>
