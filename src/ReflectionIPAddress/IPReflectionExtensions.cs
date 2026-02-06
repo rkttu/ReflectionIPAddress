@@ -54,6 +54,27 @@ namespace ReflectionIPAddress
             => services.ReflectAsync(AddressFamily.InterNetwork, cancellationToken);
 
         /// <summary>
+        /// Reflects the public IPv4 address using the specified services with a per-service timeout.
+        /// </summary>
+        /// <param name="services">
+        /// The services to use for reflection.
+        /// </param>
+        /// <param name="perServiceTimeout">
+        /// The maximum time allowed for each individual service request.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The token to monitor for cancellation requests.
+        /// </param>
+        /// <returns>
+        /// The public IPv4 address of this computer.
+        /// </returns>
+        public static Task<IPAddress> ReflectIPv4Async(
+            this IEnumerable<IAddressReflectionService> services,
+            TimeSpan perServiceTimeout,
+            CancellationToken cancellationToken = default)
+            => services.ReflectAsync(AddressFamily.InterNetwork, perServiceTimeout, cancellationToken);
+
+        /// <summary>
         /// Reflects the public IPv6 address using the specified services.
         /// </summary>
         /// <param name="services">
@@ -69,6 +90,27 @@ namespace ReflectionIPAddress
             this IEnumerable<IAddressReflectionService> services,
             CancellationToken cancellationToken = default)
             => services.ReflectAsync(AddressFamily.InterNetworkV6, cancellationToken);
+
+        /// <summary>
+        /// Reflects the public IPv6 address using the specified services with a per-service timeout.
+        /// </summary>
+        /// <param name="services">
+        /// The services to use for reflection.
+        /// </param>
+        /// <param name="perServiceTimeout">
+        /// The maximum time allowed for each individual service request.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The token to monitor for cancellation requests.
+        /// </param>
+        /// <returns>
+        /// The public IPv6 address of this computer.
+        /// </returns>
+        public static Task<IPAddress> ReflectIPv6Async(
+            this IEnumerable<IAddressReflectionService> services,
+            TimeSpan perServiceTimeout,
+            CancellationToken cancellationToken = default)
+            => services.ReflectAsync(AddressFamily.InterNetworkV6, perServiceTimeout, cancellationToken);
 
         /// <summary>
         /// Reflects the public IP address using the specified services.
@@ -88,9 +130,37 @@ namespace ReflectionIPAddress
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="ReflectionIPAddressException"></exception>
+        public static Task<IPAddress> ReflectAsync(
+            this IEnumerable<IAddressReflectionService> services,
+            AddressFamily addressFamily,
+            CancellationToken cancellationToken = default)
+            => services.ReflectAsync(addressFamily, TimeSpan.Zero, cancellationToken);
+
+        /// <summary>
+        /// Reflects the public IP address using the specified services with a per-service timeout.
+        /// </summary>
+        /// <param name="services">
+        /// The services to use for reflection.
+        /// </param>
+        /// <param name="addressFamily">
+        /// The address family to reflect.
+        /// </param>
+        /// <param name="perServiceTimeout">
+        /// The maximum time allowed for each individual service request. Use <see cref="TimeSpan.Zero"/> for no timeout.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The token to monitor for cancellation requests.
+        /// </param>
+        /// <returns>
+        /// The public IP address of this computer.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="ReflectionIPAddressException"></exception>
         public static async Task<IPAddress> ReflectAsync(
             this IEnumerable<IAddressReflectionService> services,
             AddressFamily addressFamily,
+            TimeSpan perServiceTimeout,
             CancellationToken cancellationToken = default)
         {
             if (services == null)
@@ -100,7 +170,9 @@ namespace ReflectionIPAddress
             if (addressFamily != AddressFamily.InterNetwork &&
                 addressFamily != AddressFamily.InterNetworkV6)
                 throw new ArgumentException($"Selected address family is not supported - {addressFamily}", nameof(addressFamily));
-            var taskList = services.Select(x => x.ReflectAsync(addressFamily, cancellationToken)).ToList();
+
+            var timeoutMs = (int)perServiceTimeout.TotalMilliseconds;
+            var taskList = services.Select(x => x.ReflectAsync(addressFamily, timeoutMs, cancellationToken)).ToList();
 
             while (taskList.Any())
             {
@@ -132,6 +204,27 @@ namespace ReflectionIPAddress
             => service.ReflectAsync(AddressFamily.InterNetwork, cancellationToken);
 
         /// <summary>
+        /// Reflects the public IPv4 address using the specified service with a timeout.
+        /// </summary>
+        /// <param name="service">
+        /// The service to use for reflection.
+        /// </param>
+        /// <param name="timeout">
+        /// The maximum time allowed for the request.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The token to monitor for cancellation requests.
+        /// </param>
+        /// <returns>
+        /// The public IPv4 address of this computer.
+        /// </returns>
+        public static Task<IPAddress> ReflectIPv4Async(
+            this IAddressReflectionService service,
+            TimeSpan timeout,
+            CancellationToken cancellationToken = default)
+            => service.ReflectAsync(AddressFamily.InterNetwork, (int)timeout.TotalMilliseconds, cancellationToken);
+
+        /// <summary>
         /// Reflects the public IPv6 address using the specified service.
         /// </summary>
         /// <param name="service">
@@ -147,6 +240,27 @@ namespace ReflectionIPAddress
             this IAddressReflectionService service,
             CancellationToken cancellationToken = default)
             => service.ReflectAsync(AddressFamily.InterNetworkV6, cancellationToken);
+
+        /// <summary>
+        /// Reflects the public IPv6 address using the specified service with a timeout.
+        /// </summary>
+        /// <param name="service">
+        /// The service to use for reflection.
+        /// </param>
+        /// <param name="timeout">
+        /// The maximum time allowed for the request.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The token to monitor for cancellation requests.
+        /// </param>
+        /// <returns>
+        /// The public IPv6 address of this computer.
+        /// </returns>
+        public static Task<IPAddress> ReflectIPv6Async(
+            this IAddressReflectionService service,
+            TimeSpan timeout,
+            CancellationToken cancellationToken = default)
+            => service.ReflectAsync(AddressFamily.InterNetworkV6, (int)timeout.TotalMilliseconds, cancellationToken);
 
         /// <summary>
         /// Reflects the public IP address using the specified service.
@@ -166,41 +280,87 @@ namespace ReflectionIPAddress
         /// <exception cref="ArgumentException">
         /// Thrown when the selected address family is not supported.
         /// </exception>
+        public static Task<IPAddress> ReflectAsync(
+            this IAddressReflectionService service,
+            AddressFamily addressFamily,
+            CancellationToken cancellationToken = default)
+            => service.ReflectAsync(addressFamily, 0, cancellationToken);
+
+        /// <summary>
+        /// Reflects the public IP address using the specified service with a timeout.
+        /// </summary>
+        /// <param name="service">
+        /// The service to use for reflection.
+        /// </param>
+        /// <param name="addressFamily">
+        /// The address family to reflect.
+        /// </param>
+        /// <param name="timeoutMilliseconds">
+        /// The maximum time in milliseconds allowed for the request. Use 0 for no timeout.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The token to monitor for cancellation requests.
+        /// </param>
+        /// <returns>
+        /// The public IP address of this computer.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// Thrown when the selected address family is not supported.
+        /// </exception>
+        /// <exception cref="TimeoutException">
+        /// Thrown when the operation exceeds the specified timeout.
+        /// </exception>
         public static async Task<IPAddress> ReflectAsync(
             this IAddressReflectionService service,
             AddressFamily addressFamily,
+            int timeoutMilliseconds,
             CancellationToken cancellationToken = default)
         {
             if (addressFamily != AddressFamily.InterNetwork &&
                 addressFamily != AddressFamily.InterNetworkV6)
                 throw new ArgumentException($"Selected address family is not supported - {addressFamily}", nameof(addressFamily));
 
-            if (service is IPublicAddressReflectionService)
+            using (var timeoutCts = timeoutMilliseconds > 0
+                ? new CancellationTokenSource(timeoutMilliseconds)
+                : new CancellationTokenSource())
+            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token))
             {
-                var publicService = (IPublicAddressReflectionService)service;
+                var effectiveToken = linkedCts.Token;
 
-                using (var responseStream = await publicService.CommunicateAsync(addressFamily, default, cancellationToken).ConfigureAwait(false))
+                try
                 {
-                    if (object.ReferenceEquals(Stream.Null, responseStream))
-                        return null;
+                    if (service is IPublicAddressReflectionService)
+                    {
+                        var publicService = (IPublicAddressReflectionService)service;
 
-                    var addr = await publicService.ParseResponse(responseStream, cancellationToken).ConfigureAwait(false);
+                        using (var responseStream = await publicService.CommunicateAsync(addressFamily, default, effectiveToken).ConfigureAwait(false))
+                        {
+                            if (object.ReferenceEquals(Stream.Null, responseStream))
+                                return null;
 
-                    if (addr == default)
-                        return null;
+                            var addr = await publicService.ParseResponse(responseStream, effectiveToken).ConfigureAwait(false);
 
-                    return addr;
+                            if (addr == default)
+                                return null;
+
+                            return addr;
+                        }
+                    }
+                    else if (service is IStunAddressReflectionService)
+                    {
+                        var stunService = (IStunAddressReflectionService)service;
+                        var response = await stunService.CommunicateAsync(addressFamily, default, default, effectiveToken).ConfigureAwait(false);
+                        var result = ParseStunResponse(response);
+                        return result.Address;
+                    }
+                    else
+                        throw new ArgumentException($"Unsupported service type '{service?.GetType()}' found.", nameof(service));
+                }
+                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && timeoutMilliseconds > 0)
+                {
+                    throw new TimeoutException($"The operation has timed out after {timeoutMilliseconds}ms.");
                 }
             }
-            else if (service is IStunAddressReflectionService)
-            {
-                var stunService = (IStunAddressReflectionService)service;
-                var response = await stunService.CommunicateAsync(addressFamily, default, default, cancellationToken).ConfigureAwait(false);
-                var result = ParseStunResponse(response);
-                return result.Address;
-            }
-            else
-                throw new ArgumentException($"Unsupported service type '{service?.GetType()}' found.", nameof(service));
         }
 
         /// <summary>
@@ -229,6 +389,9 @@ namespace ReflectionIPAddress
         /// </exception>
         /// <exception cref="ReflectionIPAddressException">
         /// Thrown when no address is found for the host.
+        /// </exception>
+        /// <exception cref="TimeoutException">
+        /// Thrown when the operation exceeds the specified timeout.
         /// </exception>
         public static async Task<Stream> CommunicateAsync(
             this IPublicAddressReflectionService service, AddressFamily addressFamily,

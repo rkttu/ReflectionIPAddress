@@ -24,6 +24,12 @@ namespace ReflectionIPAddress
         /// </summary>
         public const int UdpDefaultReceiveTimeoutMilliseconds = 5000;
 
+        /// <summary>
+        /// The default timeout in milliseconds for the entire HTTP-based IP reflection operation.
+        /// A value of 0 means no timeout.
+        /// </summary>
+        public const int HttpDefaultTimeoutMilliseconds = 15000;
+
         internal static readonly Lazy<Encoding> UTF8NoBOMEncoding = new Lazy<Encoding>(
             () => new UTF8Encoding(false), LazyThreadSafetyMode.None);
 
