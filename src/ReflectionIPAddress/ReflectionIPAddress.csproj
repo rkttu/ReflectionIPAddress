@@ -21,8 +21,6 @@
 		<PackageTags>ip;ip address;reflection;sslip;wildcard;range;region;udp;stun;public-ip;external-ip</PackageTags>
 		<PackageReleaseNotes>https://github.com/rkttu/ReflectionIPAddress/releases</PackageReleaseNotes>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-		<IncludeSymbols>True</IncludeSymbols>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>

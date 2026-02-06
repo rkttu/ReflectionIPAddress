@@ -46,7 +46,6 @@ jobs:
       run: |
         mkdir -p ./nuget/
         cp ./src/**/bin/Release/*.nupkg ./nuget/ 2>/dev/null || true
-        cp ./src/**/bin/Release/*.snupkg ./nuget/ 2>/dev/null || true
 
     - name: Push to NuGet.org
       run: dotnet nuget push ./nuget/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
