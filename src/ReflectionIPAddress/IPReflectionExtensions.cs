@@ -187,6 +187,129 @@ namespace ReflectionIPAddress
         }
 
         /// <summary>
+        /// Reflects the public IPv4 address from all specified services, returning results from every service that responds successfully.
+        /// </summary>
+        /// <param name="services">
+        /// The services to use for reflection.
+        /// </param>
+        /// <param name="perServiceTimeout">
+        /// The maximum time allowed for each individual service request. Use <see cref="TimeSpan.Zero"/> for no timeout.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The token to monitor for cancellation requests.
+        /// </param>
+        /// <returns>
+        /// A read-only dictionary mapping each service type to its returned IP address.
+        /// </returns>
+        public static Task<IReadOnlyDictionary<Type, IPAddress>> ReflectAllIPv4Async(
+            this IEnumerable<IAddressReflectionService> services,
+            TimeSpan perServiceTimeout = default,
+            CancellationToken cancellationToken = default)
+            => services.ReflectAllAsync(AddressFamily.InterNetwork, perServiceTimeout, cancellationToken);
+
+        /// <summary>
+        /// Reflects the public IPv6 address from all specified services, returning results from every service that responds successfully.
+        /// </summary>
+        /// <param name="services">
+        /// The services to use for reflection.
+        /// </param>
+        /// <param name="perServiceTimeout">
+        /// The maximum time allowed for each individual service request. Use <see cref="TimeSpan.Zero"/> for no timeout.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The token to monitor for cancellation requests.
+        /// </param>
+        /// <returns>
+        /// A read-only dictionary mapping each service type to its returned IP address.
+        /// </returns>
+        public static Task<IReadOnlyDictionary<Type, IPAddress>> ReflectAllIPv6Async(
+            this IEnumerable<IAddressReflectionService> services,
+            TimeSpan perServiceTimeout = default,
+            CancellationToken cancellationToken = default)
+            => services.ReflectAllAsync(AddressFamily.InterNetworkV6, perServiceTimeout, cancellationToken);
+
+        /// <summary>
+        /// Reflects the public IP address from all specified services, returning results from every service that responds successfully.
+        /// This is useful for consensus-based validation where you want to compare results across multiple services.
+        /// </summary>
+        /// <param name="services">
+        /// The services to use for reflection.
+        /// </param>
+        /// <param name="addressFamily">
+        /// The address family to reflect.
+        /// </param>
+        /// <param name="perServiceTimeout">
+        /// The maximum time allowed for each individual service request. Use <see cref="TimeSpan.Zero"/> for no timeout.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The token to monitor for cancellation requests.
+        /// </param>
+        /// <returns>
+        /// A read-only dictionary mapping each service type to its returned IP address.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException"></exception>
+        public static async Task<IReadOnlyDictionary<Type, IPAddress>> ReflectAllAsync(
+            this IEnumerable<IAddressReflectionService> services,
+            AddressFamily addressFamily,
+            TimeSpan perServiceTimeout = default,
+            CancellationToken cancellationToken = default)
+        {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+            if (services.Count() < 1)
+                throw new ArgumentException("Please specify one or more services to use.", nameof(services));
+            if (addressFamily != AddressFamily.InterNetwork &&
+                addressFamily != AddressFamily.InterNetworkV6)
+                throw new ArgumentException($"Selected address family is not supported - {addressFamily}", nameof(addressFamily));
+
+            var timeoutMs = (int)perServiceTimeout.TotalMilliseconds;
+            var results = new Dictionary<Type, IPAddress>();
+            var taskMap = services.ToDictionary(
+                s => s.ReflectAsync(addressFamily, timeoutMs, cancellationToken),
+                s => s.GetType());
+
+            var taskList = taskMap.Keys.ToList();
+
+            while (taskList.Any())
+            {
+                var completedTask = await Task.WhenAny(taskList).ConfigureAwait(false);
+                taskList.Remove(completedTask);
+
+                try
+                {
+                    var address = await completedTask.ConfigureAwait(false);
+                    if (address != null && taskMap.TryGetValue(completedTask, out var serviceType))
+                        results[serviceType] = address;
+                }
+                catch { }
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// Returns the most common (consensus) IP address from the results of all services.
+        /// </summary>
+        /// <param name="results">
+        /// The results from <see cref="ReflectAllAsync"/>.
+        /// </param>
+        /// <returns>
+        /// The IP address that appeared most frequently, or null if no results were obtained.
+        /// </returns>
+        public static IPAddress GetConsensusAddress(this IReadOnlyDictionary<Type, IPAddress> results)
+        {
+            if (results == null || results.Count == 0)
+                return null;
+
+            return results.Values
+                .GroupBy(addr => addr.ToString())
+                .OrderByDescending(g => g.Count())
+                .First()
+                .First();
+        }
+
+        /// <summary>
         /// Reflects the public IPv4 address using the specified service.
         /// </summary>
         /// <param name="service">
@@ -675,6 +798,48 @@ namespace ReflectionIPAddress
         /// </returns>
         public static string ToSSLIPDomain(this IPAddress address, string subDomain = null, string domain = null, bool useDashSeparator = true)
             => ToWildcardDomain(address, "sslip.io", subDomain, domain, useDashSeparator);
+
+        /// <summary>
+        /// Reflects the public IP address with detailed information (country, city, ASN, etc.)
+        /// using a rich address reflection service such as <see cref="IFConfigService"/>.
+        /// </summary>
+        /// <param name="service">
+        /// A service that implements <see cref="IRichAddressReflectionService"/>.
+        /// </param>
+        /// <param name="addressFamily">
+        /// The address family to reflect.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The token to monitor for cancellation requests.
+        /// </param>
+        /// <returns>
+        /// Detailed IP address information including geographic and network metadata.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown when the service is null.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// Thrown when the selected address family is not supported.
+        /// </exception>
+        public static async Task<IPAddressInfo> ReflectDetailedAsync(
+            this IRichAddressReflectionService service,
+            AddressFamily addressFamily = AddressFamily.InterNetwork,
+            CancellationToken cancellationToken = default)
+        {
+            if (service == null)
+                throw new ArgumentNullException(nameof(service));
+            if (addressFamily != AddressFamily.InterNetwork &&
+                addressFamily != AddressFamily.InterNetworkV6)
+                throw new ArgumentException($"Selected address family is not supported - {addressFamily}", nameof(addressFamily));
+
+            using (var responseStream = await service.CommunicateAsync(addressFamily, default, cancellationToken).ConfigureAwait(false))
+            {
+                if (object.ReferenceEquals(Stream.Null, responseStream))
+                    return null;
+
+                return await service.ParseDetailedResponse(responseStream, cancellationToken).ConfigureAwait(false);
+            }
+        }
 
         /// <summary>
         /// Converts the IP address to a domain name using the "xip.io" type provider.

@@ -1,14 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
+		<TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
 		<OutputType>Library</OutputType>
 		<AssemblyName>ReflectionIPAddress</AssemblyName>
+		<LangVersion>latest</LangVersion>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<RootNamespace>ReflectionIPAddress</RootNamespace>
 		<Title>ReflectionIPAddress</Title>
-		<Version>0.6.1</Version>
+		<Version>0.7.0</Version>
 		<Authors>Jung Hyun, Nam</Authors>
 		<Company>rkttu.com</Company>
 		<Product>ReflectionIPAddress</Product>
@@ -17,18 +18,33 @@
 		<PackageProjectUrl>https://github.com/rkttu/ReflectionIPAddress</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/rkttu/ReflectionIPAddress</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageTags>ip;ip address;reflection;sslip;wildcard;range;region;udp;stun</PackageTags>
+		<PackageTags>ip;ip address;reflection;sslip;wildcard;range;region;udp;stun;public-ip;external-ip</PackageTags>
 		<PackageReleaseNotes>https://github.com/rkttu/ReflectionIPAddress/releases</PackageReleaseNotes>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 		<IncludeSymbols>True</IncludeSymbols>
-		<SymbolPackageFormat>symbols.nupkg</SymbolPackageFormat>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<!-- SourceLink -->
+	<PropertyGroup>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="System.Text.Json" Version="8.0.4" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="System.Text.Json" Version="9.0.1" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
