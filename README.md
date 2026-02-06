@@ -37,7 +37,7 @@ Also, this library explicitly uses direct TCP socket connections and SSL connect
 
 ## Update
 
-### v0.7.0
+### v0.7.1
 
 - Multi-targeting: `netstandard2.0`, `net6.0`, `net8.0`
 - Added `ReflectAllAsync` / `GetConsensusAddress` for consensus-based IP resolution

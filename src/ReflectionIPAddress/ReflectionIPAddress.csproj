@@ -9,7 +9,7 @@
 	<PropertyGroup>
 		<RootNamespace>ReflectionIPAddress</RootNamespace>
 		<Title>ReflectionIPAddress</Title>
-		<Version>0.7.0</Version>
+		<Version>0.7.1</Version>
 		<Authors>Jung Hyun, Nam</Authors>
 		<Company>rkttu.com</Company>
 		<Product>ReflectionIPAddress</Product>
