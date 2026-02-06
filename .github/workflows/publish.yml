@@ -1,0 +1,59 @@
+name: Publish to NuGet
+
+on:
+  release:
+    types: [ published ]
+
+env:
+  DOTNET_NOLOGO: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: |
+          8.0.x
+          10.0.x
+
+    - name: Extract version from tag
+      id: version
+      run: |
+        TAG="${GITHUB_REF#refs/tags/}"
+        VERSION="${TAG#v}"
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        echo "Extracted version: $VERSION"
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build -c Release --no-restore -p:Version=${{ steps.version.outputs.version }}
+
+    - name: Test
+      run: dotnet test -c Release --no-build --verbosity normal
+
+    - name: Collect packages
+      run: |
+        mkdir -p ./nuget/
+        cp ./src/**/bin/Release/*.nupkg ./nuget/ 2>/dev/null || true
+        cp ./src/**/bin/Release/*.snupkg ./nuget/ 2>/dev/null || true
+
+    - name: Push to NuGet.org
+      run: dotnet nuget push ./nuget/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: nuget-release
+        if-no-files-found: error
+        retention-days: 90
+        path: ./nuget/

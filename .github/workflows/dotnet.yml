@@ -16,25 +16,28 @@ env:
   DOTNET_NOLOGO: true
 jobs:
   build:
-    # If this library depends on the windows API, you should use the windows latest runner.
-    # Otherwise, you can use the ubuntu latest runner.
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: |
+          8.0.x
+          10.0.x
     - name: Restore dependencies
-      run: dotnet restore ./src/
+      run: dotnet restore
     - name: Build
-      run: dotnet build -c Release --no-restore ./src/
+      run: dotnet build -c Release --no-restore
     - name: Test
-      run: dotnet test -c Release --no-build --verbosity normal ./src/
+      run: dotnet test -c Release --no-build --verbosity normal
     - name: Copy Artifacts
       run: |
-        mkdir ./nuget/
-        cp ./src/**/bin/Release/*.nupkg ./nuget/
+        mkdir -p ./nuget/
+        cp ./src/**/bin/Release/*.nupkg ./nuget/ 2>/dev/null || true
+        cp ./src/**/bin/Release/*.snupkg ./nuget/ 2>/dev/null || true
     - uses: actions/upload-artifact@v4
       with:
         name: nuget
